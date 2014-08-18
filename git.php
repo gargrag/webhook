@@ -1,7 +1,7 @@
 <?php
 
-$branch = "qa";
-$log = "/var/www/qa/logs/git.log";
+define('TH_BRANCH', 'qa');
+define('TH_LOG_FILE', '/var/www/qa/logs/git.log');
 
 $repos = array(
 	"bunker" => ".",
@@ -16,10 +16,10 @@ if(isset($payload)){
 
 	__log("==== BEGIN Payload from " . $payload->repository->name );
 	$chdir = $repos[$payload->repository->name];
-	exec("cd ${chdir} &&  git reset --hard HEAD && git pull origin +${branch} 2>&1", $output);
+	exec("cd ${chdir} &&  git reset --hard HEAD && git pull origin" . TH_BRANCH . "2>&1", $output);
 	__log($output);
 	__log("==== PHINX");
-	exec("php -f ". __FILE__ ."/vendor/robmorgan/phinx/bin/phinx migrate 2>&1", $output);
+	exec("php -f ". dirname(__FILE__) ."/vendor/robmorgan/phinx/bin/phinx migrate 2>&1", $output);
 	__log($output);
 	__log("==== END");
 
@@ -35,5 +35,5 @@ function __log($log){
 		$message .= $log;
 	}
 	$message .= PHP_EOL;
-	file_put_contents($log, $message, FILE_APPEND);
+	file_put_contents(TH_LOG_FILE, $message, FILE_APPEND);
 }
