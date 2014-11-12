@@ -1,4 +1,5 @@
 <?php
+ini_set('date.timezone', 'America/Montevideo');
 require_once 'vendor/autoload.php';
 
 use HipChat\HipChat;
@@ -20,12 +21,14 @@ class WebHook
 
             $payload = json_decode($_POST['payload']);
 
+            print_r($payload);
+
             $this->logfile("=== BEGIN payload from " . $payload->repository->slug);
 
             foreach ($payload->commits as $commit) {
-                preg_match_all("/merge/i", $commit->message, $matches);
+                preg_match_all("/merge/", $commit->message, $matches);
 
-                if (count($matches) > 0) {
+                if (count($matches) > 1) {
                     $message = "It seems that " . $commit->author . "<br/>"  .
                         "has <b>merged</b> smth into " . $commit->branch . " on the <b>repo:" .
                         $payload->repository->name . "</b>";
@@ -104,22 +107,23 @@ class WebHook
         }
 
         $hc = new HipChat($hc_config['token']);
-        $hc->message_room($hc_config['from'] . $hc_config['room'],
+        $hc->message_room($hc_config['room'] , $hc_config['from'],
             $message, false, $color, HipChat::FORMAT_HTML);
 
     }
 
     private function logfile($message)
     {
+        $message_send = '';
 
         if (is_array($message)) {
-            $message .= implode(PHP_EOL, $message);
+            $message_send .= implode(PHP_EOL, $message);
         }
 
         $date = date(DATE_RFC2822);
-        $message = "[${date}] ${message}" . PHP_EOL;
+        $message_send = "[${date}] ${message_send}" . PHP_EOL;
 
-        file_put_contents($this->config['general']['logfile'], $message, FILE_APPEND);
+        file_put_contents($this->config['general']['logfile'], $message_send, FILE_APPEND);
     }
 
 }
