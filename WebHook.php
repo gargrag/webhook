@@ -10,7 +10,7 @@ class WebHook
 
     public function __construct()
     {
-        $this->config = parse_ini_file('config.ini');
+        $this->config = parse_ini_file('config.ini', true);
     }
 
     public function process_payload()
@@ -18,7 +18,7 @@ class WebHook
 
         if (isset($_POST['payload'])) {
 
-            $payload = json_encode($POST['payload']);
+            $payload = json_encode($_POST['payload']);
 
             $this->logfile("=== BEGIN payload from " . $payload->repository->slug);
 
