@@ -26,8 +26,9 @@ class WebHook
                 preg_match_all("/merge/i", $commit->message, $matches);
 
                 if (count($matches) > 0) {
-                    $message = "It seems that $commit->author <br/>
-                    has <b>merged</b> smth into $commit->branch on the <b>repo: $payload->repository->name</b>";
+                    $message = "It seems that " . $commit->author . "<br/>"  .
+                        "has <b>merged</b> smth into " . $commit->branch . " on the <b>repo:" .
+                        $payload->repository->name . "</b>";
 
                     $this->hipchat_notify($message);
                 }
