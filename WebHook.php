@@ -116,7 +116,7 @@ class WebHook
         }
 
         $date = date(DATE_RFC2822);
-        $message = "[${date}] ${message}";
+        $message = "[${date}] ${message} \n";
 
         file_put_contents($this->config['general']['logfile'], $message, FILE_APPEND);
     }
