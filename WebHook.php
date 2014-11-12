@@ -54,7 +54,7 @@ class WebHook
         $branch = $this->config['repositories']['branch'];
         $dir = $this->config['repositories'][$repo];
 
-        $command = "cd ${dir} && git pull origin $branch";
+        $command = "cd ${dir} && git pull origin $branch 2>&1";
         exec($command, $output, $return_var);
 
         $this->logfile($output);
@@ -71,12 +71,14 @@ class WebHook
     private function post_commands(){
         if(count($this->config['post_commands']) > 0){
             foreach($this->config['post_commands'] as $post_command){
-                exec($post_command, $output, $return_var);
+                $output = '';
+                $return_var = 0;
+                exec($post_command . " 2>&1", $output, $return_var);
                 $exit_status = ( $return_var == 0 ) ? "succeed" : "fails";
                 $this->logfile("POST COMMAND : ${post_command}, ${exit_status} with output: ");
                 $this->logfile($output);
 
-                if($return_var > 0){
+                if($return_var != 0){
                     $output = implode('<br />', $output);
                     $message = "POST COMMAND: ${post_command} failed, with output: <br />" . $output;
 
@@ -118,6 +120,8 @@ class WebHook
 
         if (is_array($message)) {
             $message_send .= implode(PHP_EOL, $message);
+        }else{
+            $message_send = $message;
         }
 
         $date = date(DATE_RFC2822);
