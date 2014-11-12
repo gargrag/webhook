@@ -18,7 +18,7 @@ class WebHook
 
         if (isset($_POST['payload'])) {
 
-            $payload = json_encode($_POST['payload']);
+            $payload = json_decode($_POST['payload']);
 
             $this->logfile("=== BEGIN payload from " . $payload->repository->slug);
 
