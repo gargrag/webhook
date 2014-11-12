@@ -112,7 +112,7 @@ class WebHook
     {
 
         if (is_array($message)) {
-            $message .= implode(PHP_EOL, $message);
+            $message .= implode('\n', $message);
         }
 
         $date = date(DATE_RFC2822);
