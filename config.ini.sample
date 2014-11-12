@@ -1,0 +1,17 @@
+[general]
+logfile =
+
+[hipchat]
+token =
+room =
+from =
+
+
+[repositories]
+branch = qa
+rep1 = .
+rep2 = /path/to/rep2
+
+[post_commands]
+run_phinx = "php -f vendor/bin/phinx migrate"
+clear_memcached = 'echo "flush_all" | /bin/netcat -q 2 127.0.0.1 11211'
