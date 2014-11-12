@@ -112,11 +112,11 @@ class WebHook
     {
 
         if (is_array($message)) {
-            $message .= implode('\n', $message);
+            $message .= implode(PHP_EOL, $message);
         }
 
         $date = date(DATE_RFC2822);
-        $message = "[${date}] ${message} \n";
+        $message = "[${date}] ${message}" . PHP_EOL;
 
         file_put_contents($this->config['general']['logfile'], $message, FILE_APPEND);
     }
