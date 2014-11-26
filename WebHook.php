@@ -130,4 +130,4 @@ class WebHook
         file_put_contents($this->config['general']['logfile'], $message_send, FILE_APPEND);
     }
 
-}
+}   
