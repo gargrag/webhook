@@ -1,7 +1,4 @@
 <?php
-ini_set('date.timezone', 'America/Montevideo');
-ini_set('date.timezone', 'America/Montevideo');
-ini_set('date.timezone', 'America/Montevideo');
 require_once 'vendor/autoload.php';
 
 use HipChat\HipChat;
