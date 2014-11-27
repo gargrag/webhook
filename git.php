@@ -2,8 +2,6 @@
 require_once 'WebHook.php';
 
 ignore_user_abort(true);
-ignore_user_abort(true);
-ignore_user_abort(true);
 set_time_limit(0);
 ob_start();
 header('Connection: close');

@@ -10,43 +10,39 @@ class WebHook
 {
 
     private $config;
+    private $payload;
 
     public function __construct()
     {
         $this->config = parse_ini_file('config.ini', true);
+        $this->payload = json_decode(file_get_contents('php://input'));
     }
 
     public function process_payload()
     {
+        $this->logfile("=== BEGIN payload from " . $this->payload->repository->name);
 
-        if (isset($_POST['payload'])) {
+        foreach ($this->payload->commits as $commit) {
+            $this->detect_merge($commit);
+        }
 
-            $payload = json_decode($_POST['payload']);
+        $this->git_pull($this->payload->repository->name);
+        $this->post_commands();
 
-            print_r($payload);
+        $this->logfile("=== END payload from " . $this->payload->repository->name);
 
-            $this->logfile("=== BEGIN payload from " . $payload->repository->slug);
+    }
 
-            foreach ($payload->commits as $commit) {
-                preg_match_all("/merge/", $commit->message, $matches);
+    private function detect_merge($commit)
+    {
+        preg_match_all("/merge/i", $commit->message, $matches);
 
-                if (count($matches) > 1) {
-                    $message = "It seems that " . $commit->author . "<br/>"  .
-                        "has <b>merged</b> smth into " . $commit->branch . " on the <b>repo:" .
-                        $payload->repository->name . "</b>";
+        if (count($matches[0]) > 0) {
+            $message = "It seems that " . $commit->author->name . "<br/>" .
+                "has <b>merged</b> smth on" . $this->payload->repository->name .
+                ", <a href='" . $commit->url . "'> see it here. </a>";
 
-                    $this->hipchat_notify($message);
-                }
-            }
-
-            $this->git_pull($payload->repository->slug);
-            $this->post_commands();
-
-            $this->logfile("=== END payload from " . $payload->repository->slug);
-
-        } else {
-
-            $this->logfile("=== EMPTY Call from " . $_SERVER['HTTP_REMOTE_ADDR']);
+            $this->hipchat_notify($message);
         }
     }
 
@@ -54,51 +50,71 @@ class WebHook
     {
 
         $branch = $this->config['repositories']['branch'];
+        $origin = $this->config['repositories']['remote'];
         $dir = $this->config['repositories'][$repo];
 
-        $command = "cd ${dir} && git pull origin $branch 2>&1";
-        exec($command, $output, $return_var);
+        $command = "cd ${dir} && git reset --hard HEAD && git pull ${origin} ${branch} 2>&1";
 
+        exec($command, $output, $return_var);
         $this->logfile($output);
 
         if ($return_var != 0) {
             $output = implode('<br />', $output);
-            $message = "Can\'t pull on ${repo}::${branch} <br/> ${output}";
-            $this->hipchat_notify("Can\'t pull on ${repo}::${branch} <br/>");
+            $message = "<b>Can't pull on ${repo}::${branch}</b><br/><code>${output}</code>";
+            $this->hipchat_notify($message, 'error', true);
         }
 
 
     }
 
-    private function post_commands(){
-        if(count($this->config['post_commands']) > 0){
-            foreach($this->config['post_commands'] as $post_command){
+    private function post_commands()
+    {
+        foreach ($this->config['post_commands'] as $key => $post_command) {
+
+            $run_command = false;
+
+            if($this->config['post_commands_triggers'][$key]){
+                foreach($this->payload->commits as $commit){
+                    foreach($commit->modified as $file){
+                        if(strpos($file, $this->config['post_commands_triggers'][$key]) !== false){
+                            $run_command = true;
+                        }
+                    }
+                }
+            }else{
+                $run_command = true;
+            }
+
+            if($run_command) {
+
                 $output = '';
                 $return_var = 0;
+
                 exec($post_command . " 2>&1", $output, $return_var);
-                $exit_status = ( $return_var == 0 ) ? "succeed" : "fails";
-                $this->logfile("POST COMMAND : ${post_command}, ${exit_status} with output: ");
+
+                $exit_status = ($return_var > 0) ? "fails" : "succeed";
+                $this->logfile("COMMAND : ${post_command}, ${exit_status} with output: ");
                 $this->logfile($output);
 
-                if($return_var != 0){
+                if ($return_var != 0) {
                     $output = implode('<br />', $output);
                     $message = "POST COMMAND: ${post_command} failed, with output: <br />" . $output;
 
-                    $this->hipchat_notify($message, "warning");
+                    $this->hipchat_notify($message, "warning", true);
                 }
             }
         }
     }
 
 
-    private function hipchat_notify($message, $type = null)
+    private function hipchat_notify($message, $type = null, $notify = false)
     {
 
         $hc_config = $this->config['hipchat'];
 
         switch ($type) {
             case 'warning' :
-                $color = HipChat::COLOR_YELLOW;
+                $color = HipChat::COLOR_PURPLE;
                 break;
 
             case 'error' :
@@ -111,8 +127,8 @@ class WebHook
         }
 
         $hc = new HipChat($hc_config['token']);
-        $hc->message_room($hc_config['room'] , $hc_config['from'],
-            $message, false, $color, HipChat::FORMAT_HTML);
+        $hc->message_room($hc_config['room'], $hc_config['from'],
+            $message, $notify, $color, HipChat::FORMAT_HTML);
 
     }
 
@@ -122,7 +138,7 @@ class WebHook
 
         if (is_array($message)) {
             $message_send .= implode(PHP_EOL, $message);
-        }else{
+        } else {
             $message_send = $message;
         }
 
