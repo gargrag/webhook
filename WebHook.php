@@ -40,6 +40,8 @@ class WebHook
                 ", <a href='" . $commit->url . "'> see it here. </a>";
 
             $this->hipchat_notify($message);
+            $this->slack_notify($message);
+
         }
     }
 
@@ -59,6 +61,7 @@ class WebHook
             $output = implode('<br />', $output);
             $message = "<b>Can't pull on ${repo}::${branch}</b><br/><code>${output}</code>";
             $this->hipchat_notify($message, 'error', true);
+            $this->slack_notify($message);
         }
 
 
@@ -98,6 +101,7 @@ class WebHook
                     $message = "POST COMMAND: ${post_command} failed, with output: <br />" . $output;
 
                     $this->hipchat_notify($message, "warning", true);
+                    $this->slack_notify($message);
                 }
             }
         }
@@ -126,6 +130,21 @@ class WebHook
         $hc = new HipChat($hc_config['token']);
         $hc->message_room($hc_config['room'], $hc_config['from'],
             $message, $notify, $color, HipChat::FORMAT_HTML);
+
+    }
+
+    private function slack_notify($message){
+
+        $slack_config = $this->config['slack'];
+
+        $settings = [
+            'username' => $slack_config['username'],
+            'channel' => $slack_config['channel'],
+            'link_names' => true
+        ];
+
+        $client = new Maknz\Slack\Client('http://your.slack.endpoint', $settings);
+        $client->send($message);
 
     }
 

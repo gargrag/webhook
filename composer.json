@@ -3,6 +3,7 @@
     "homepage": "http://bunkerdb.com/",
     "require": {
         "php": ">=5.3.3",
-        "hipchat/hipchat-php": "dev-master"
+        "hipchat/hipchat-php": "dev-master",
+        "maknz/slack": "~1.7"
     }
 }

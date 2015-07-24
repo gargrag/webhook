@@ -6,6 +6,11 @@ room =
 token =
 from =
 
+[slack]
+endpoint =
+channel =
+username =
+
 [repositories]
 remote = origin
 branch = master
