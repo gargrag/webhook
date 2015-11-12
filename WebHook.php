@@ -38,10 +38,6 @@ class WebHook
             $message = "It seems that " . $commit->author->name . "<br/>" .
                 "has <b>merged</b> smth on" . $this->payload->repository->name .
                 ", <a href='" . $commit->url . "'> see it here. </a>";
-
-            $this->hipchat_notify($message);
-            $this->slack_notify($message);
-
         }
     }
 
@@ -60,8 +56,6 @@ class WebHook
         if ($return_var != 0) {
             $output = implode('<br />', $output);
             $message = "<b>Can't pull on ${repo}::${branch}</b><br/><code>${output}</code>";
-            $this->hipchat_notify($message, 'error', true);
-            $this->slack_notify($message);
         }
 
 
@@ -99,56 +93,13 @@ class WebHook
                 if ($return_var != 0) {
                     $output = implode('<br />', $output);
                     $message = "POST COMMAND: ${post_command} failed, with output: <br />" . $output;
-
-                    $this->hipchat_notify($message, "warning", true);
-                    $this->slack_notify($message);
                 }
             }
         }
     }
 
 
-    private function hipchat_notify($message, $type = null, $notify = false)
-    {
-
-        $hc_config = $this->config['hipchat'];
-
-        switch ($type) {
-            case 'warning' :
-                $color = HipChat::COLOR_PURPLE;
-                break;
-
-            case 'error' :
-                $color = HipChat::COLOR_RED;
-                break;
-
-            default :
-                $color = HipChat::COLOR_GRAY;
-                break;
-        }
-
-        $hc = new HipChat($hc_config['token']);
-        $hc->message_room($hc_config['room'], $hc_config['from'],
-            $message, $notify, $color, HipChat::FORMAT_HTML);
-
-    }
-
-    private function slack_notify($message){
-
-        $slack_config = $this->config['slack'];
-
-        $settings = [
-            'username' => $slack_config['username'],
-            'channel' => $slack_config['channel'],
-            'link_names' => true
-        ];
-
-        $client = new Maknz\Slack\Client('http://your.slack.endpoint', $settings);
-        $client->send($message);
-
-    }
-
-    private function logfile($message)
+private function logfile($message)
     {
         $message_send = '';
 
@@ -164,4 +115,4 @@ class WebHook
         file_put_contents($this->config['general']['logfile'], $message_send, FILE_APPEND);
     }
 
-}   
+}
