@@ -1,4 +1,8 @@
 <?php
+if(file_exists('./disable.webhook')){
+  return true;
+}
+
 require_once 'WebHook.php';
 
 ignore_user_abort(true);
