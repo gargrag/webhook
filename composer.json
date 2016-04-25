@@ -7,10 +7,10 @@
   },
   "autoload": {
     "psr-0": {
-      "WebHook\\": "./src"
+      "WebHook\\": "./src/WebHook"
     },
     "psr-4": {
-      "WebHook\\": "src"
+      "WebHook\\": "src/WebHook"
     }
   }
 }
