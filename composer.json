@@ -5,4 +5,11 @@
         "php": ">=5.3.3",
         "guzzlehttp/guzzle": "^6.2"
     }
+
+    "psr-0": {
+        "WebHook": "./src"
+    },
+    "psr-4": {
+        "WebHook": "src"
+    }
 }
