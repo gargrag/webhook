@@ -1,11 +1,6 @@
 [general]
 logfile = git.log
 
-[hipchat]
-room =
-token =
-from =
-
 [slack]
 endpoint =
 channel =

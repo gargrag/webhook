@@ -1,8 +1,6 @@
 <?php
 require_once 'vendor/autoload.php';
 
-use HipChat\HipChat;
-
 class WebHook
 {
 
@@ -19,26 +17,18 @@ class WebHook
     {
         $this->logfile("=== BEGIN payload from " . $this->payload->repository->name);
 
-        foreach ($this->payload->commits as $commit) {
-            $this->detect_merge($commit);
-        }
-
         $this->git_pull($this->payload->repository->name);
         $this->post_commands();
 
         $this->logfile("=== END payload from " . $this->payload->repository->name);
 
     }
-
-    private function detect_merge($commit)
-    {
-        preg_match_all("/merge/i", $commit->message, $matches);
-
-        if (count($matches[0]) > 0) {
-            $message = "It seems that " . $commit->author->name . "<br/>" .
-                "has <b>merged</b> smth on" . $this->payload->repository->name .
-                ", <a href='" . $commit->url . "'> see it here. </a>";
-        }
+    
+    private function slackNotification($message){
+        $client = new GuzzleHttp\Client();
+        $response = $client->request('POST', 'https://hooks.slack.com/services/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', [
+            'form_params' => array('payload', json_encode(array('text' => $message)))
+        ]);
     }
 
     private function git_pull($repo)
@@ -55,7 +45,7 @@ class WebHook
 
         if ($return_var != 0) {
             $output = implode('<br />', $output);
-            $message = "<b>Can't pull on ${repo}::${branch}</b><br/><code>${output}</code>";
+            $message = "*Can't pull on ${repo}::${branch}*${output}";
         }
 
 
@@ -93,6 +83,7 @@ class WebHook
                 if ($return_var != 0) {
                     $output = implode('<br />', $output);
                     $message = "POST COMMAND: ${post_command} failed, with output: <br />" . $output;
+                    $this->slackNotification($message);
                 }
             }
         }
