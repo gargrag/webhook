@@ -1,15 +1,16 @@
 {
-    "name": "gargrag/webhook",
-    "description": "Automate github webhooks with php",
-    "require": {
-        "php": ">=5.3.3",
-        "guzzlehttp/guzzle": "^6.2"
-    }
-
+  "name": "gargrag/webhook",
+  "description": "Automate github webhooks with php",
+  "require": {
+    "php": ">=5.3.3",
+    "guzzlehttp/guzzle": "^6.2"
+  },
+  "autoload": {
     "psr-0": {
-        "WebHook": "./src"
+      "WebHook": "./src"
     },
     "psr-4": {
-        "WebHook": "src"
+      "WebHook": "src"
     }
+  }
 }
